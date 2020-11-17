@@ -530,7 +530,7 @@ public class Menu {
 			c = ad.getAllCustomers().get(choice-1);
 		}
 		CustomerDao cd = new CustomerDaoImpl();
-		System.out.println("Are you sure you want to delete " + c + "? Their accounts will also be deleted. (y/n)");
+		System.out.println("Are you sure you want to delete " + c + "? Their bank accounts will also be deleted. (y/n)");
 		String validation = scan.nextLine();
 		if (validation.equals("y")) {
 			cd.deleteCustomer(c);
