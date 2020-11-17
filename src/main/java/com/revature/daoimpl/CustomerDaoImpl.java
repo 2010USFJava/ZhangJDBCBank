@@ -10,6 +10,7 @@ import java.util.List;
 import com.revature.beans.BankAccount;
 import com.revature.beans.Customer;
 import com.revature.dao.CustomerDao;
+import com.revature.exception.AccountDeletionException;
 import com.revature.exception.UsernameException;
 import com.revature.util.ConnFactory;
 import com.revature.util.LogThis;
@@ -161,6 +162,58 @@ public class CustomerDaoImpl implements CustomerDao {
 		}
 		
 		return c;
+	}
+	
+	@Override
+	public void deleteCustomer(Customer c) {
+		try {
+			Connection conn = cf.getConnection();
+			String sql = "delete from bank_customer where c_id=?";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, c.getId());
+			ps.executeUpdate();
+			LogThis.LogIt("info", "Deleted customer " + c);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void updateCustomerName(Customer c, String firstName, String lastName) {
+		try {
+			Connection conn = cf.getConnection();
+			String sql = "update bank_customer set first_name=?, last_name=? where c_id=?";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1,firstName);
+			ps.setString(2,lastName);
+			ps.setInt(3,c.getId());
+			ps.executeUpdate();
+			c.setFirstName(firstName);
+			c.setLastName(lastName);
+			LogThis.LogIt("info", "Customer " + c + " updating name to " + firstName + " " + lastName);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	@Override
+	public void updateCustomerLogin(Customer c, String username, String password) {
+		try {
+			Connection conn = cf.getConnection();
+			String sql = "update bank_customer set username=?, password=? where c_id=?";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1,username);
+			ps.setString(2,password);
+			ps.setInt(3,c.getId());
+			ps.executeUpdate();
+			c.setUsername(username);
+			c.setPassword(password);
+			LogThis.LogIt("info", "Customer " + c + " updating login info to username=" + username + ", password=" + password);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 

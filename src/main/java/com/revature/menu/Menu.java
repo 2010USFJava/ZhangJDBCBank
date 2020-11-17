@@ -394,7 +394,7 @@ public class Menu {
 				selectCustomersMenu();
 				break;
 			case "d":
-				//deleteCustomersMenu();
+				deleteCustomersMenu();
 				break;
 			case "m":
 				startMenu();
@@ -417,7 +417,7 @@ public class Menu {
 		String username = scan.nextLine();
 		System.out.println("Please enter a password:");
 		String password = scan.nextLine();
-		Customer c = cd.createCustomer(firstName, lastName, username, password);
+		cd.createCustomer(firstName, lastName, username, password);
 		System.out.println("Customer successfully created.");
 		adminMenu();
 		return;
@@ -455,7 +455,89 @@ public class Menu {
 			}
 		}
 		else {
-			//TODO: Update customers menu
+			Customer c = ad.getAllCustomers().get(choice-1);
+			updateCustomerMenu(c);
+		}
+		return;
+	}
+	
+	public static void updateCustomerMenu(Customer c) {
+		CustomerDao cd = new CustomerDaoImpl();
+		System.out.println("For the customer with first name = " + c.getFirstName() + ", last name = " + c.getLastName()
+				+ ", username = " + c.getUsername() + ", password = " + c.getPassword() + ", please choose an option:");
+		System.out.println("\t[N]ame change");
+		System.out.println("\t[L]ogin info change");
+		String choice = scan.nextLine();
+		switch(choice.toLowerCase()) {
+			case "n":
+				System.out.println("New First Name:");
+				String firstName = scan.nextLine();
+				System.out.println("New Last Name:");
+				String lastName = scan.nextLine();
+				cd.updateCustomerName(c, firstName, lastName);
+				System.out.println("Customer name successfully updated!");
+				selectCustomersMenu();
+				break;
+			case "l":
+				System.out.println("New username:");
+				String username = scan.nextLine();
+				System.out.println("New password:");
+				String password = scan.nextLine();
+				cd.updateCustomerLogin(c, username, password);
+				System.out.println("Customer login successfully updated!");
+				selectCustomersMenu();
+				break;
+			default:
+				System.out.println("Please try again");
+				selectCustomersMenu();
+				break;			
+		}
+		
+	}
+	
+	public static void deleteCustomersMenu() {
+		AdminDao ad = new AdminDaoImpl();
+		System.out.println("Here are the customers:");
+		ad.viewCustomers((Admin)user);
+		System.out.println("Which one would you like to delete?");
+		int choice = 0;
+		try {
+			choice=Integer.parseInt(scan.nextLine());
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid input.");
+			selectCustomersMenu();
+		}
+		Customer c = null;
+		if (choice > ad.getNumCustomers() || choice < 1) {
+			System.out.println("Invalid input.");
+			System.out.println("\t[T]ry again");
+			System.out.println("\t[M]ain menu");
+			String choice2 =scan.nextLine();
+			switch(choice2.toLowerCase()) {	
+				case "t": 
+					selectCustomersMenu();
+					break;
+				case "m":
+					adminMenu();
+					break;
+				default:
+					System.out.println("Please try again.");
+					adminMenu();
+					break;	
+			}
+		}
+		else {
+			c = ad.getAllCustomers().get(choice-1);
+		}
+		CustomerDao cd = new CustomerDaoImpl();
+		System.out.println("Are you sure you want to delete " + c + "? Their accounts will also be deleted. (y/n)");
+		String validation = scan.nextLine();
+		if (validation.equals("y")) {
+			cd.deleteCustomer(c);
+			System.out.println("Customer " + c.getFirstName() + " " + c.getLastName() + " has been successfully deleted!");
+			adminMenu();
+		} else {
+			deleteCustomersMenu();
 		}
 		return;
 		

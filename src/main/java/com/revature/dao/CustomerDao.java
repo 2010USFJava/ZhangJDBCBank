@@ -15,5 +15,8 @@ public interface CustomerDao {
 	Customer retrieveCustomerByUsername(String username);
 	public boolean checkUniqueUsername(String username);
 	public boolean checkExistingUsername(String username);
-	Customer createCustomer(String firstName, String lastName, String username, String password) throws UsernameException; 
+	Customer createCustomer(String firstName, String lastName, String username, String password) throws UsernameException;
+	void deleteCustomer(Customer c); 
+	void updateCustomerName(Customer c, String firstName, String lastName);
+	void updateCustomerLogin(Customer c, String username, String password);
 }

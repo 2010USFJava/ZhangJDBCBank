@@ -17,6 +17,31 @@ public class AdminDaoImpl implements AdminDao {
 
 	public static ConnFactory cf = ConnFactory.getInstance();
 	
+
+	@Override
+	public ArrayList<Customer> getAllCustomers() {
+		ArrayList<Customer> cs = new ArrayList<Customer>();
+		try {
+			Connection conn = cf.getConnection();
+			String sql = "select * from bank_customer";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				Customer c = new Customer(rs.getString("username"), rs.getString("password"),
+									rs.getString("first_name"),rs.getString("last_name"), 
+									rs.getInt("c_id"));
+				cs.add(c);
+				
+			}	
+		
+			LogThis.LogIt("info", "Retrieved all customers");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return cs;
+	}
+	
 	@Override
 	public void viewCustomers(Admin a) {
 		
