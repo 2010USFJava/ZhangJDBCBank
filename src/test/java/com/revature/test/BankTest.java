@@ -10,8 +10,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.revature.beans.*;
+import com.revature.dao.AdminDao;
 import com.revature.dao.BankAccountDao;
 import com.revature.dao.CustomerDao;
+import com.revature.daoimpl.AdminDaoImpl;
 import com.revature.daoimpl.BankAccountDaoImpl;
 import com.revature.daoimpl.CustomerDaoImpl;
 import com.revature.exception.AccountDeletionException;
@@ -139,6 +141,12 @@ public class BankTest {
 		} catch (UsernameException e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	@Test
+	public void userDefinedFunctionTest() {
+		AdminDao ad = new AdminDaoImpl();
+		ad.getNumCustomers();
 	}
 
 }

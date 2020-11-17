@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.revature.beans.*;
+import com.revature.dao.AdminDao;
 import com.revature.dao.BankAccountDao;
 import com.revature.dao.CustomerDao;
+import com.revature.daoimpl.AdminDaoImpl;
 import com.revature.daoimpl.BankAccountDaoImpl;
 import com.revature.daoimpl.CustomerDaoImpl;
 import com.revature.exception.AccountDeletionException;
 import com.revature.exception.IncorrectPasswordException;
 import com.revature.exception.InvalidInputException;
 import com.revature.exception.OverdraftException;
+import com.revature.exception.UsernameException;
 import com.revature.exception.UsernameNotFoundException;
 import com.revature.util.LogThis;
 
@@ -20,6 +23,7 @@ public class Menu {
 	static User user = null;
 	
 	public static void startMenu() {
+		user = null;
 		System.out.println("~Welcome to Blueberry Bank~");
 		System.out.println("Please enter a choice:");
 		System.out.println("\t[L]ogin");
@@ -42,10 +46,20 @@ public class Menu {
 				}
 				break;
 			case "s":
-				//createMenu();
+				try {
+					newCustomerMenu();
+				} catch (UsernameException e) {
+					System.out.println(e.getMessage());
+					tryLoginAgainMenu();
+				}
 				break;
 			case "a":
-				adminMenu();
+			try {
+				adminLoginMenu();
+			} catch (UsernameNotFoundException | IncorrectPasswordException e) {
+				System.out.println(e.getMessage());
+				tryLoginAgainMenu();
+			}
 				break;
 			case "q":
 				LogThis.LogIt("info", "User " + user + " has left the bank.");
@@ -98,7 +112,7 @@ public class Menu {
 	}
 	
 	public static void customerMenu(Customer c) {
-		System.out.println("What would you like to do next?");
+		System.out.println("What would you like to do next, " + c.getFirstName() + "?");
 		CustomerDao cd = new CustomerDaoImpl();
 		ArrayList<BankAccount> accts = cd.getCustomerAccounts(c);
 
@@ -314,29 +328,136 @@ public class Menu {
 		}   
  		return;
 	}
-//	
-//	public static void createMenu() {
-//		System.out.println("~New Account Menu~");
-//		System.out.println("Please enter a username:");
-//		String username = scan.nextLine();
-//		if (Roster.doesUsernameExist(username)) {
-//			System.out.println("Username already exists! Please try again:");
-//			startMenu();
-//			return;
-//		}
-//		System.out.println("Please enter a password:");
-//		String password = scan.nextLine();
-//		Customer newCustomer = new Customer(username, password);
-//		Roster.userList.add(newCustomer);
-//	
-//		System.out.println("Account setup successful. Logging in.");
-//		customerMenu(newCustomer);
-//
-//		return;
-//		
-//	}
-//	
-	public static void adminMenu() {
+	
+	public static void newCustomerMenu() throws UsernameException {
+		CustomerDao cd = new CustomerDaoImpl();
+		System.out.println("~New Customer Menu~");
+		System.out.println("First Name:");
+		String firstName = scan.nextLine();
+		System.out.println("Last Name:");
+		String lastName = scan.nextLine();
+		System.out.println("Please enter a username:");
+		String username = scan.nextLine();
+		System.out.println("Please enter a password:");
+		String password = scan.nextLine();
+		Customer c = cd.createCustomer(firstName, lastName, username, password);
+		user = c;
+		System.out.println("Account setup successful. Logging in...");
+		customerMenu(c);
+		return;
+		
+	}
+	
+	public static void adminLoginMenu() throws UsernameNotFoundException, IncorrectPasswordException {
 		System.out.println("~Admin Menu~");
+		System.out.println("Username:");
+		String username=scan.nextLine();
+		AdminDao ad = new AdminDaoImpl();
+		if (!ad.checkAdminExists(username))
+			throw new UsernameNotFoundException();
+		user = ad.retrieveAdminByUsername(username);
+		System.out.println("Password:");
+		String password=scan.nextLine();
+		if (!password.equals(user.getPassword()))
+			throw new IncorrectPasswordException();
+		System.out.println("Admin login successful.");
+		adminMenu();
+		
+	}
+	
+	public static void adminMenu() {
+		AdminDao ad = new AdminDaoImpl();
+		
+		System.out.println("Admin options:");
+		System.out.println("\t[V]iew customers");
+		System.out.println("\t[C]reate a new customer account");
+		System.out.println("\t[U]pdate a customer account");
+		System.out.println("\t[D]elete a customer account");
+		System.out.println("\t[M]ain menu");
+		String choice=scan.nextLine();
+		
+		switch(choice.toLowerCase()) {
+			case "v":
+				System.out.println("~Bank Customers~");
+				ad.viewCustomers((Admin)user);
+				adminMenu();
+				break;
+			case "c":
+				try {
+					newAdminCustomerMenu();
+				} catch (UsernameException e) {
+					System.out.println(e.getMessage());
+					adminMenu();
+				}
+				break;
+			case "u":
+				selectCustomersMenu();
+				break;
+			case "d":
+				//deleteCustomersMenu();
+				break;
+			case "m":
+				startMenu();
+				break;
+			default:
+				System.out.println("Please try again");
+				startMenu();
+				break;			
+		}
+	}
+	
+	public static void newAdminCustomerMenu() throws UsernameException {
+		CustomerDao cd = new CustomerDaoImpl();
+		System.out.println("~Admin's New Customer Menu~");
+		System.out.println("First Name:");
+		String firstName = scan.nextLine();
+		System.out.println("Last Name:");
+		String lastName = scan.nextLine();
+		System.out.println("Please enter a username:");
+		String username = scan.nextLine();
+		System.out.println("Please enter a password:");
+		String password = scan.nextLine();
+		Customer c = cd.createCustomer(firstName, lastName, username, password);
+		System.out.println("Customer successfully created.");
+		adminMenu();
+		return;
+		
+	}
+	
+	public static void selectCustomersMenu() {
+		AdminDao ad = new AdminDaoImpl();
+		System.out.println("Here are the customers:");
+		ad.viewCustomers((Admin)user);
+		System.out.println("Which one would you like to update?");
+		int choice = 0;
+		try {
+			choice=Integer.parseInt(scan.nextLine());
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid input.");
+			selectCustomersMenu();
+		}
+		if (choice > ad.getNumCustomers() || choice < 1) {
+			System.out.println("Invalid input.");
+			System.out.println("\t[T]ry again");
+			System.out.println("\t[M]ain menu");
+			String choice2 =scan.nextLine();
+			switch(choice2.toLowerCase()) {	
+				case "t": 
+					selectCustomersMenu();
+					break;
+				case "m":
+					adminMenu();
+					break;
+				default:
+					System.out.println("Please try again.");
+					adminMenu();
+					break;	
+			}
+		}
+		else {
+			//TODO: Update customers menu
+		}
+		return;
+		
 	}
 }
